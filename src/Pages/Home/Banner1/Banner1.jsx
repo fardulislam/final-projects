@@ -16,10 +16,16 @@ const Banner1 = () => {
            icon:iconimg,
            header:'Booking pick & data',
            title:'From personal packages to business shipments — we deliver on time, every time.'   
-        }
+        },
+        {
+           icon:iconimg,
+           header:'Booking pick & data',
+           title:'From personal packages to business shipments — we deliver on time, every time.'   
+        },
+        
     ]
     return (
-        <div className='grid grid-cols-3 gap-4 py-10 '>
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-4 py-10 '>
            {
             service.map(({header,title,icon})=>(
                 <div className="bg-primary p-4 text-center rounded-2xl px-10">

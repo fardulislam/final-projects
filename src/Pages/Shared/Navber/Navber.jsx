@@ -1,8 +1,21 @@
 import React from "react";
 import Logo from "../../../Component/Logo/Logo";
-import { NavLink } from "react-router";
+import { Link, NavLink } from "react-router";
+import useAuth from "../../../Hook/UseAuth";
 
 const Navber = () => {
+
+  const {user,signout}= useAuth();
+
+  const hendlesignout =()=>{
+    signout()
+    .then(result=>{
+      console.log(result)
+    })
+    .catch(error =>{
+      console.log(error)
+    })
+  }
   const links = (
     <>
       <li>
@@ -11,6 +24,7 @@ const Navber = () => {
       <li>
        <NavLink to={'/coverage'} className={({isActive})=> isActive ? "text-blue-600 font-semibold border-b-2 border-blue-600":"text-gray-600"} >Coverage</NavLink>
       </li>
+      
     </>
   );
   return (
@@ -50,8 +64,12 @@ const Navber = () => {
          {links}
         </ul>
       </div>
-      <div className="navbar-end ">
-        <a className="btn btn-primary text-black rounded-xl">sign up</a>
+      <div className="navbar-end gap-2 ">
+        {
+          user? <a onClick={hendlesignout} className="btn  text-black rounded-xl">sign out</a> : <Link className="btn" to={'/login'}>sign in</Link>
+
+        }
+       <Link className="btn btn-primary text-black rounded-lg " to={'/rider'}>Be a rider</Link>
       </div>
     </div>
   );
