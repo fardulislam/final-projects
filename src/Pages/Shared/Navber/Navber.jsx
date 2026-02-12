@@ -4,27 +4,74 @@ import { Link, NavLink } from "react-router";
 import useAuth from "../../../Hook/UseAuth";
 
 const Navber = () => {
+  const { user, signout } = useAuth();
 
-  const {user,signout}= useAuth();
-
-  const hendlesignout =()=>{
+  const hendlesignout = () => {
     signout()
-    .then(result=>{
-      console.log(result)
-    })
-    .catch(error =>{
-      console.log(error)
-    })
-  }
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   const links = (
     <>
       <li>
-     <NavLink className={({isActive})=> isActive ? "text-blue-600 font-semibold border-b-2 border-blue-600":"text-gray-600"} to={'/'}>Home</NavLink>
+        <NavLink
+          className={({ isActive }) =>
+            isActive ? "bg-primary  rounded-xl" : "text-gray-600"
+          }
+          to={"/"}
+        >
+          Home
+        </NavLink>
       </li>
       <li>
-       <NavLink to={'/coverage'} className={({isActive})=> isActive ? "text-blue-600 font-semibold border-b-2 border-blue-600":"text-gray-600"} >Coverage</NavLink>
+        <NavLink
+          to={"/coverage"}
+          className={({ isActive }) =>
+            isActive ? "bg-primary  rounded-xl" : "text-gray-600"
+          }
+        >
+          Coverage
+        </NavLink>
       </li>
-      
+      <li>
+        <NavLink
+          to={"/sent-parsel"}
+          className={({ isActive }) =>
+            isActive ? "bg-primary  rounded-xl" : "text-gray-600"
+          }
+        >
+          Send parcel
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to={"/about"}
+          className={({ isActive }) =>
+            isActive ? "bg-primary  rounded-xl" : "text-gray-600"
+          }
+        >
+          About Us
+        </NavLink>
+      </li>
+
+      {user && (
+        <>
+          <li>
+            <NavLink
+              to={"/dashboard/my-parcels"}
+              className={({ isActive }) =>
+                isActive ? "bg-primary  rounded-xl" : "text-gray-600"
+              }
+            >
+              My parcels
+            </NavLink>
+          </li>
+        </>
+      )}
     </>
   );
   return (
@@ -52,7 +99,7 @@ const Navber = () => {
             tabIndex="-1"
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
           >
-           {links}
+            {links}
           </ul>
         </div>
         <a className="btn btn-ghost text-xl">
@@ -60,16 +107,21 @@ const Navber = () => {
         </a>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">
-         {links}
-        </ul>
+        <ul className="menu menu-horizontal px-1">{links}</ul>
       </div>
       <div className="navbar-end gap-2 ">
-        {
-          user? <a onClick={hendlesignout} className="btn  text-black rounded-xl">sign out</a> : <Link className="btn" to={'/login'}>sign in</Link>
-
-        }
-       <Link className="btn btn-primary text-black rounded-lg " to={'/rider'}>Be a rider</Link>
+        {user ? (
+          <a onClick={hendlesignout} className="btn  text-black rounded-xl">
+            sign out
+          </a>
+        ) : (
+          <Link className="btn" to={"/login"}>
+            sign in
+          </Link>
+        )}
+        <Link className="btn btn-primary text-black rounded-lg " to={"/rider"}>
+          Be a rider
+        </Link>
       </div>
     </div>
   );

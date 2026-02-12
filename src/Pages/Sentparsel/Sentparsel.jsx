@@ -1,0 +1,317 @@
+import React from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useLoaderData, useNavigate } from "react-router";
+import Swal from "sweetalert2";
+import useAxiossecure from "../../Hook/useAxiossecure";
+import useAuth from "../../Hook/UseAuth";
+
+const Sentparsel = () => {
+  const servicecenters = useLoaderData();
+  const regionduplicate = servicecenters.map((c) => c.region);
+  const regions = [...new Set(regionduplicate)];
+
+  const {
+    register,
+    handleSubmit,
+    // formState: { errors },
+    control,
+  } = useForm();
+
+  const axiosSecure = useAxiossecure();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const senderregion = useWatch({ control, name: "senderRegion" });
+  const receiverregion = useWatch({ control, name: "receiverRegion" });
+
+  const districtbyregion = (region) => {
+    const districtregions = servicecenters.filter((c) => c.region === region);
+    const districts = districtregions.map((d) => d.district);
+    return districts;
+  };
+
+  const hendlesendparsel = (data) => {
+    console.log(data);
+
+    const isDocument = data.parcelType === "document";
+    const isSameDistrict = data.senderDistrict === data.receiverDistrict;
+    const parcelWeight = parseFloat(data.parcelWeight);
+    let cost = 0;
+    if (isDocument) {
+      cost = isSameDistrict ? 60 : 80;
+    } else {
+      if (parcelWeight < 3) {
+        cost = isSameDistrict ? 110 : 150;
+      } else {
+        const minCharge = isSameDistrict ? 110 : 150;
+        const extraWeight = parcelWeight - 3;
+        const extraCharge = isSameDistrict
+          ? extraWeight * 40
+          : extraWeight * 40 + 40;
+        cost = minCharge + extraCharge;
+      }
+    }
+    console.log("cost", cost);
+    data.cost = cost;
+
+    Swal.fire({
+      title: "Agree with tha cost?",
+      text: `You have to pay ${cost} taka!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "confirm and continue payment!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // save the parcel info to the database //
+        axiosSecure.post("/parcels", data).then((res) => {
+          console.log("after saving parcel", res.data);
+          if (res.data.insertedId) {
+            navigate('/dashboard/my-parcels')
+            Swal.fire({
+              position: "top-end",
+              icon: "success",
+              title: "parcel has created. please pay!",
+              showConfirmButton: false,
+              timer: 2500,
+            });
+          }
+        });
+      }
+    });
+  };
+  return (
+    <div>
+      <h2 className="text-5xl font-bold">Send A parcel</h2>
+      <form
+        onSubmit={handleSubmit(hendlesendparsel)}
+        className="mt-12 p-4 text-black"
+        action=""
+      >
+        {/* parcel type */}
+        <div>
+          <label className="label mr-4">
+            <input
+              type="radio"
+              {...register("parcelType")}
+              value="document"
+              className="radio"
+              defaultChecked
+            />{" "}
+            Document
+          </label>
+
+          <label className="label">
+            <input
+              type="radio"
+              {...register("parcelType")}
+              value="non-document"
+              className="radio"
+            />{" "}
+            Non-Document
+          </label>
+        </div>
+        {/* parcel info: name,weight */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 my-8">
+          <fieldset className="fieldset">
+            <label className="label">Parcel Name</label>
+            <input
+              type="text"
+              {...register("parcelName")}
+              className="input w-full"
+              placeholder="Parcel Name"
+            />
+          </fieldset>
+          <fieldset className="fieldset">
+            <label className="label">Parcel weight (kg)</label>
+            <input
+              type="number"
+              {...register("parcelWeight")}
+              className="input w-full"
+              placeholder="Parcel Weight"
+            />
+          </fieldset>
+        </div>
+        {/* tow column */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 ">
+          {/* sender info */}
+
+          <fieldset className="fieldset">
+            {/* sender name */}
+            <h4 className="text-2xl font-semibold">Sender-Details</h4>
+            <label className="label">Sender Name</label>
+            <input
+              type="text"
+              {...register("senderName")}
+              defaultValue={user?.displayName}
+              className="input w-full"
+              placeholder="Sender Name"
+            />
+
+            {/* sender email */}
+            <label className="label mt-4">Sender Email</label>
+            <input
+              type="email"
+              {...register("senderEmail")}
+              defaultValue={user?.email}
+              className="input w-full"
+              placeholder="Sender Email"
+            />
+
+            {/* selected region */}
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Sender Region</legend>
+              <select
+                {...register("senderRegion")}
+                defaultValue="Pick a region"
+                className="select w-full"
+              >
+                <option disabled={true}>Pick a region</option>
+                {regions.map((r, i) => (
+                  <option key={i} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+
+            {/* selected district */}
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Sender District</legend>
+              <select
+                {...register("senderDistrict")}
+                defaultValue="Pick a district"
+                className="select w-full"
+              >
+                <option disabled={true}>Pick a District</option>
+                {districtbyregion(senderregion).map((r, i) => (
+                  <option key={i} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+
+            {/* sender address */}
+            <label className="label mt-4">Sender Address</label>
+            <input
+              type="text"
+              {...register("senderAddress")}
+              className="input w-full"
+              placeholder="Sender Address"
+            />
+            {/* sender number */}
+            <label className="label mt-4">Sender number</label>
+            <input
+              type="number"
+              {...register("senderNumber")}
+              className="input w-full"
+              placeholder="Sender Number"
+            />
+            {/* pickup instruction */}
+
+            <label className="label mt-4">Pickup Instruction</label>
+            <textarea
+              type="text"
+              {...register("pickupInstruction")}
+              className="input w-full textarea "
+              rows={10}
+              placeholder="Pickup Instruction"
+            />
+          </fieldset>
+
+          {/* receiver Details */}
+
+          <fieldset className="fieldset">
+            {/* receiver name */}
+            <h4 className="text-2xl font-semibold">Receiver-Details</h4>
+            <label className="label">Receiver Name</label>
+            <input
+              type="text"
+              {...register("receiverName")}
+              className="input w-full"
+              placeholder="Receiver Name"
+            />
+            {/* receiver email */}
+            <label className="label mt-4">Receiver Email</label>
+            <input
+              type="email"
+              {...register("receiverEmail")}
+              className="input w-full"
+              placeholder="Receiver Email"
+            />
+
+            {/* receiver region */}
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Receiver Region</legend>
+              <select
+                {...register("receiverRegion")}
+                defaultValue="Pick a region"
+                className="select w-full"
+              >
+                <option disabled={true}>Pick a region</option>
+                {regions.map((r, i) => (
+                  <option key={i} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+
+            {/* receiver district */}
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Receiver District</legend>
+              <select
+                {...register("receiverDistrict")}
+                defaultValue="Pick a district"
+                className="select w-full"
+              >
+                <option disabled={true}>Pick a district</option>
+                {districtbyregion(receiverregion).map((d, i) => (
+                  <option key={i} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+
+            {/* receiver address */}
+            <label className="label mt-4">Receiver Address</label>
+            <input
+              type="text"
+              {...register("receiverAddress")}
+              className="input w-full"
+              placeholder="Receiver Address"
+            />
+            {/* receiver number */}
+            <label className="label mt-4">Receiver number</label>
+            <input
+              type="number"
+              {...register("receiverNumber")}
+              className="input w-full"
+              placeholder="Receiver Number"
+            />
+            {/* pickup instruction */}
+
+            <label className="label mt-4">Pickup Instruction</label>
+            <textarea
+              type="text"
+              {...register("pickupInstruction")}
+              className="input w-full textarea "
+              rows={10}
+              placeholder="Pickup Instruction"
+            />
+          </fieldset>
+        </div>
+        <input
+          type="submit"
+          className="btn btn-primary mt-8 text-black"
+          value="send parcel"
+        />
+      </form>
+    </div>
+  );
+};
+
+export default Sentparsel;
