@@ -2,6 +2,8 @@ import React from "react";
 import { TbTruckDelivery } from "react-icons/tb";
 import { Link, NavLink, Outlet } from "react-router";
 import Logo from "../Component/Logo/Logo";
+import { FaRegCreditCard } from "react-icons/fa";
+import { MdDirectionsBike } from "react-icons/md";
 
 const DashbordLayout = () => {
   return (
@@ -78,6 +80,18 @@ const DashbordLayout = () => {
                 data-tip="myparcels" to={'/dashboard/my-parcels'}> <TbTruckDelivery />
                     <span className="is-drawer-close:hidden">My parcels</span></NavLink>
             </li>
+
+            <li>
+                <NavLink className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                data-tip="Payment History" to={'/dashboard/payment-history'}> <FaRegCreditCard />
+                    <span className="is-drawer-close:hidden">Payment History</span></NavLink>
+            </li>
+            <li>
+                <NavLink className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                data-tip="Approve Riders" to={'/dashboard/approve-riders'}> <MdDirectionsBike />
+                    <span className="is-drawer-close:hidden">Approve Riders</span></NavLink>
+            </li>
+            
 
             {/* List item */}
             <li>
